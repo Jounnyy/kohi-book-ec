@@ -128,9 +128,8 @@ export const deleteUser = async(req, res) => {
     if(!user) return res.status(404).json({status: 404, msg: 'User not found'});
     
     let fileName = user.image;
-    let pathImage = `../public/images/${fileName}`
-
-    fs.unlinkSync(pathImage, err => {
+    let pathImage = `./public/images/${fileName}`
+    fs.unlinkSync(pathImage, async(err) => {
         if(err) return log.error(err)
     });
     
