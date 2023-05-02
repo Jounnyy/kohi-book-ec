@@ -1,7 +1,8 @@
-import {DataTypes} from 'sequelize';
+import { DataTypes } from 'sequelize';
 import db from '../config/database.js';
+import User from './User.js';
 
-const User = db.define('user_data', {
+const Book = db.define('book_data',{
     uuid:{
         type: DataTypes.STRING,
         defaultValue: DataTypes.UUIDV4,
@@ -15,22 +16,41 @@ const User = db.define('user_data', {
         allowNull: false,
         validate: {
             notEmpty: true,
-            len: [3, 25]
         }
     },
-    email : {
+    desc : {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
             notEmpty: true,
-            isEmail: true
         }
     },
-    password:{
+    release:{
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
             notEmpty: true
+        }
+    },
+    genre: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+            notEmpty: true,
+        }
+    },
+    price:{
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
+    },
+    more_information: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+            notEmpty: true,
         }
     },
     image : {
@@ -47,14 +67,16 @@ const User = db.define('user_data', {
             notEmpty: true,
         }
     },
-    role: {
-        type: DataTypes.STRING,
+    userId : {
+        type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
             notEmpty: true,
         }
-    }
-},{freezeTableName: true});
+    },
+},{freezTableName: true});
 
+User.hasMany(Book);
+Book.belongsTo(User, {foreignKey: 'userId'});
 
-export default User;
+export default Book;

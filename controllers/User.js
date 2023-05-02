@@ -31,25 +31,22 @@ export const createUser = async (req, res) => {
     const files = req.files;
     const { name, email, password, confPassword, role } = req.body;
 
-    // hashing password
     if(password !== confPassword) return res.status(400).json({msg: "password and confirm password do not match"})
     const hashPassword = await argon2.hash(password);
 
-    // image handle
     if(files === null) return res.status(400).json({msg: "No file uploaded!"})
     const file = files.file;
     const size = file.data.length;
     const extend = path.extname(file.name);
     const fileName = file.md5 + extend;
-    const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
+    const url = `${req.protocol}://${req.get("host")}/images/users/${fileName}`;
     const allowedTypePhotos = ['.png', '.jpg', '.jpeg', '.gif'];
 
-    // validate image
     if(!allowedTypePhotos.includes(extend.toLowerCase())) return res.status(422).json({msg: "Invalid image"})
     if(size > 5000000) return res.status(422).json({msg: "Images must be less than 5MB"})
 
-    file.mv(`./public/images/${fileName}`, async(err) => {
-        if(err) return res.status(500).json({status:500, msg: err.message});
+    file.mv(`./public/images/users/${fileName}`, async(err) => {
+        if(err) return res.status(500).json({ status:500, msg: err.message });
         try {
             await User.create({
                 name: name,
@@ -63,6 +60,7 @@ export const createUser = async (req, res) => {
         } catch (err) {
             log.error(err);
             res.status(500).json({status: 500, msg: "Internal server Error"});
+            return false;
         }
     })
 }
@@ -70,12 +68,11 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
     let fileName, hashPassword;
     const files = req.files;
-    const { name, email, password, confPassword, role } = req.body;
+    const { name, email, password, confPassword, role } = req.body;                                                 
 
     const user = await User.findOne({
-        where: {uuid: req.params.id}
+        where: { uuid: req.params.id }
     });
-    log.debug(user)
     if (!user) return res.status(404).json({status: 404, msg: 'User not found'});
 
     if(password === null || password === ""){
@@ -92,17 +89,17 @@ export const updateUser = async (req, res) => {
         const size = file.data.length;
         const extend = path.extname(file.name);
         fileName = file.md5 + extend;
-        const allowedTypePhotos = ['.png', '.jpg', '.jpeg', '.gif']
+        const allowedTypePhotos = ['.png', '.jpg', '.jpeg', '.gif'];
 
         if(!allowedTypePhotos.includes(extend.toLowerCase())) return res.status(422).json({msg: "Invalid image"})
         if(size > 5000000) return res.status(422).json({msg: "Images must be less than 5MB"})
     
-        file.mv(`./public/images/${fileName}`, async(err) => {
+        file.mv(`./public/images/users/${fileName}`, async(err) => {
             if(err) return res.status(500).json({status: 500, msg: "internal server error", err: err.message})
         })
     }
 
-    const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
+    const url = `${req.protocol}://${req.get("host")}/images/users/${fileName}`;
     try {
         await User.update({
             name: name,
@@ -123,16 +120,16 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async(req, res) => {
     const user = await User.findOne({
-        where: {uuid: req.params.id}
+        where: { uuid: req.params.id }
     });
     if(!user) return res.status(404).json({status: 404, msg: 'User not found'});
     
     let fileName = user.image;
-    let pathImage = `./public/images/${fileName}`
-    fs.unlinkSync(pathImage, async(err) => {
-        if(err) return log.error(err)
+    let pathImage = `./public/images/users/${fileName}`
+    fs.unlinkSync(pathImage, (err) => {
+        if(err) return res.status(500).json({ status: 500, msg: err.message})
     });
-    
+
     try{
         await User.destroy({
             where: {id: user.id}

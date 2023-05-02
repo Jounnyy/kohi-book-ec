@@ -6,6 +6,8 @@ import session from 'express-session';
 import SequelizeStore from 'connect-session-sequelize';
 import fileUpload from 'express-fileupload';
 import User from './routes/User.js';
+import Auth from './routes/Auth.js';
+import Product from './routes/Product.js';
 import db from './config/database.js';
 
 const app = express();
@@ -18,7 +20,7 @@ const corsOptions = {
     origin: '*',
     credentails: true,
     optionSuccessStatus: 200,
-    port: process.env.PORT || 5000
+    port: process.env.PORT
 };
 
 app.use(session({
@@ -32,12 +34,16 @@ app.use(session({
     proxy: true
 }));
 
+// (async() => {db.sync();})();
+
 app.use(fileUpload());
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.static('public'));
 
 app.use(User);
+app.use(Auth);
+app.use(Product);
 
 app.listen(process.env.PORT, () => {
     log.info(`this server running on http://localhost:${process.env.PORT}`)
