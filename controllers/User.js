@@ -1,3 +1,5 @@
+import { validatePasswords } from "../middleware/PasswordValidate.js";
+import passwordComplexity from "joi-password-complexity";
 import User from "../models/User.js";
 import log from "../utils/logger.js";
 import argon2 from 'argon2';
@@ -5,13 +7,23 @@ import path from 'path';
 import fs from 'fs';
 
 export const getUsers = async (req, res) => {
+    const { role } = req;
     try {
-        const result = await User.findAll();
-        res.status(200).json({status: 200, result});
-    } catch (err) {
-        log.error(err);
-        res.status(500).json({status: 500, msg: "Internal server Error"});
-    }
+            if(role === 'admin' || role === 'seller'){
+                const result = await User.findAll();
+                res.status(200).json({status: 200, result});
+            } else {
+                const result = await User.findAll({
+                    attributes: {
+                        exclude: ['password', 'createdAt', 'updatedAt']
+                    }
+                });
+                res.status(200).json({status: 200, result});
+            }
+        } catch (err) {
+            log.error(err);
+            res.status(500).json({status: 500, msg: "Internal server Error"});
+        }
 }
 
 export const getUserById = async (req, res) => {
@@ -30,9 +42,18 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
     const files = req.files;
     const { name, email, password, confPassword, role } = req.body;
+    const complextyOptions = { min: 8, max: 10, upperCase: 1, numeric: 1, symbol: 1 }
 
+    validatePasswords(password);
     if(password !== confPassword) return res.status(400).json({msg: "password and confirm password do not match"})
     const hashPassword = await argon2.hash(password);
+
+    if(req.role !== 'admin') {
+        if(role === 'admin') {
+            res.status(403).json({status: 403, msg: 'Invalid Role'})
+            return;
+        }
+}
 
     if(files === null) return res.status(400).json({msg: "No file uploaded!"})
     const file = files.file;
@@ -68,20 +89,23 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
     let fileName, hashPassword;
     const files = req.files;
-    const { name, email, password, confPassword, role } = req.body;                                                 
+    const { name, email, password, confPassword, role } = req.body;   
+    const complextyOptions = { min: 8, max: 10, upperCase: 1, numeric: 1, symbol: 1 }                                              
 
     const user = await User.findOne({
         where: { uuid: req.params.id }
     });
     if (!user) return res.status(404).json({status: 404, msg: 'User not found'});
 
+    if(password !== confPassword) return res.status(400).json({status: 400, msg: 'Password and confrim password do not match'});
+
     if(password === null || password === ""){
         hashPassword = user.password;
     }else {
-        hashPassword = await argon2.hash(password)
+        passwordComplexity(complextyOptions).validate(password);
+        hashPassword = await argon2.hash(password);
     }
 
-    if(password !== confPassword) return res.status(400).json({status: 400, msg: 'Password and confrim password do not match'});
     if(files === null){
         fileName = user.image;
     }else{

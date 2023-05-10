@@ -76,6 +76,8 @@ const Book = db.define('book_data',{
     },
 },{freezTableName: true});
 
+
+
 User.hasMany(Book);
 Book.belongsTo(User, {foreignKey: 'userId'});
 

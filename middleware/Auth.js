@@ -25,7 +25,7 @@ export async function verifyRole(req, res, next) {
         }
     });
     if(!user) return res.status(404).json({status:404, msg: "User not found"});
-    if(user.role !== 'admin') return res.status(403).json({status:403, msg: "Role does not exist"});
+    // if(user.role !== 'admin') return res.status(403).json({status:403, msg: "Role does not exist"});
     return next();
 }
 
