@@ -1,5 +1,5 @@
-import { validatePasswords } from "../middleware/PasswordValidate.js";
 import passwordComplexity from "joi-password-complexity";
+import { validatePassword } from "../middleware/PasswordValidate.js";
 import User from "../models/User.js";
 import log from "../utils/logger.js";
 import argon2 from 'argon2';
@@ -42,21 +42,22 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
     const files = req.files;
     const { name, email, password, confPassword, role } = req.body;
-    const complextyOptions = { min: 8, max: 10, upperCase: 1, numeric: 1, symbol: 1 }
 
-    validatePasswords(password);
     if(password !== confPassword) return res.status(400).json({msg: "password and confirm password do not match"})
+    const validatePass = validatePassword(password, confPassword);
+    if(validatePass['regex'] === 'false') return res.status(400).json({status: 400, msg: "The password must be at least 8 characters, there is one capital, one number and certain symbols are prohibited"})
     const hashPassword = await argon2.hash(password);
 
-    if(req.role !== 'admin') {
+    if(req.role !== 'admin') {  
         if(role === 'admin') {
             res.status(403).json({status: 403, msg: 'Invalid Role'})
             return;
         }
-}
+    }
 
     if(files === null) return res.status(400).json({msg: "No file uploaded!"})
     const file = files.file;
+    log.debug(files);
     const size = file.data.length;
     const extend = path.extname(file.name);
     const fileName = file.md5 + extend;

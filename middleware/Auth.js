@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 
 export async function verifyUser(req, res, next) {
-    if(!req.session.userId) return res.status(404).json({status:404, msg: "Please Login your account"})
+    if(!req.sessio.userId) return res.status(404).json({status:404, msg: "Please Login your account"})
 
     const user = await User.findOne({
         attribute: ['uuid', 'name', 'email', 'url', 'role'],

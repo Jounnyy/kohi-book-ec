@@ -1,11 +1,14 @@
-import { check } from "express-validator";
-
-export const validatePasswords = (pass) => {
-    check(pass).trim().notEmpty().withMessage('Password required')
-    .isLength({ min: 8 }).withMessage('password must be minimum 5 length')
-    .matches(/(?=.*?[A-Z])/).withMessage('At least one Uppercase')
-    .matches(/(?=.*?[a-z])/).withMessage('At least one Lowercase')
-    .matches(/(?=.*?[0-9])/).withMessage('At least one Number')
-    .matches(/(?=.*?[#?!@$%^&*-])/).withMessage('At least one special character')
-    .not().matches(/^$|\s+/).withMessage('White space not allowed')
+export function validatePassword(pass, confPass) {
+    let response, result;
+    if(pass !== confPass){
+        response =  `{"status": "400", "msg": "password and confirm password do not match"}`
+        result = JSON.parse(response);
+        return result;
+    } 
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    const resRegex = regex.test(pass);
+    response = `{"status": "200", "msg": "password and confirm password clean!", "regex": "${resRegex}"}`
+    result = JSON.parse(response);
+    console.log(result);
+    return result;
 }

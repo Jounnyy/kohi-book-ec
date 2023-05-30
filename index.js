@@ -17,10 +17,8 @@ const sessionStore = SequelizeStore(session.Store);
 const store = new sessionStore({db:db});
 
 const corsOptions = {
-    origin: '*',
-    credentails: true,
-    optionSuccessStatus: 200,
-    port: process.env.PORT
+    credentials: true,
+    origin: 'http://localhost:3000'
 };
 
 app.use(session({
@@ -39,7 +37,7 @@ app.use(session({
 app.use(fileUpload());
 app.use(express.json());
 app.use(cors(corsOptions));
-app.use(express.static('public'));
+app.use(express.static('/public'));
 
 app.use(User);
 app.use(Auth);

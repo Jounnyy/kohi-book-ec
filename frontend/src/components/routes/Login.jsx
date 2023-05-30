@@ -1,15 +1,16 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import imgLogin from '../assets/img_login.png';
-import './style/Login.css';
+import '../style/Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [changePassword, setChangePassoword] = useState(true);
-  const [isNotFound, setIsNotFound] = useState("");
-  const [values, setValues] = useState({
+  const [changePassword, setChangePassoword] = React.useState(true);
+  const [isNotFound, setIsNotFound] = React.useState("");
+  const [wrongPass, setWrongPass] = React.useState("");
+  const [values, setValues] = React.useState({
     email: "",
     password: ""
   });
@@ -23,19 +24,29 @@ const Login = () => {
       await axios.post('http://localhost:5000/login',{
         email: email,
         password: password
+      },{
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
       })
-      .then(res => {
+      .then(({data}) => {
         navigate('/dashboard');
-        return res.data['result'];
+        return data;
       })
-      .catch(err => setIsNotFound(err.message));
+      .catch(err => {
+        console.log(err.response.data.msg);
+        setWrongPass(err.response.data.msg);
+        setIsNotFound(err.message)
+      });
     } catch (err) {
       console.error(err.message);
     }
   }
 
   function changeHandler(e){
-    setValues({...values, [e.target.name]: e.target.value});
+    setValues({
+      ...values, 
+      [e.target.name]: e.target.value
+    });
   }
 
   return (
@@ -48,7 +59,9 @@ const Login = () => {
                         <h1>Login</h1>
                         <p>Please insert you're email and password!</p>
                     </div>
-                    <span className='err__msg'>{isNotFound === "Request failed with status code 404" ? (<p>{isNotFound}</p>) : ""}</span>
+                    <span className='err__msg'>
+                      {isNotFound === "Request failed with status code 404" ? (<p>User Not Found!!</p>) : ""} 
+                    </span>
                     <form className='form__login' onSubmit={loginHandler}>    
                         <input 
                             type="email" 
@@ -72,6 +85,9 @@ const Login = () => {
                             {changeIcon ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                           </span>
                         </div>
+                          <span className="err__msg" style={{display: 'flex', marginLeft: "15px"}}>
+                            {wrongPass === "Password do not matches" ? (<p>{wrongPass}</p>) : ""}
+                          </span>
                         <div className="bottom__form">
                           <p>Do you don't have a account? <a href='/register'>register here!</a></p>
                           <input 

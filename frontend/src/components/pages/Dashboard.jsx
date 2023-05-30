@@ -1,10 +1,12 @@
 import React from 'react'
-
+import Navbar from '../layout/Navbar'
 const Dashboard = () => {
   return (
-    <div>
-      dashboard
-    </div>
+    <section className="full__screen">
+      <div className="dark-screen">
+        <Navbar />
+      </div>
+    </section>
   )
 }
 
